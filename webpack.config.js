@@ -10,12 +10,14 @@ function getConfig (env) {
     let node = env && !!env.node || false;
 
     let obj = {
+        mode: "production",
         entry: entryPoints = {
             index: "./index.ts"
         },
         output: {
             // Eh... our html files are in the entry folder, so we nest everything further in the entry folder.
             filename: "./[name].js",
+            libraryTarget: "commonjs2"
         },
 
         // Enable sourcemaps for debugging webpack's output.
@@ -44,13 +46,12 @@ function getConfig (env) {
         ],
 
         resolveLoader: {
-            modules: ['node_modules', './loaders']
+            modules: ['node_modules']
         },
     };
 
     if (node) {
         obj["target"] = "node";
-    } else {
     }
 
     return obj;
