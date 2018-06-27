@@ -9,13 +9,15 @@
   "author": "yeerkkiller1 <yeerkkiller1@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "ws": "^3.2.0"
+  },
+  "devDependencies": {
     "@types/node": "^7.0.12",
     "@types/ws": "^3.2.0",
     "ts-loader": "^3.1.1",
     "typescript": "^2.8.1",
     "webpack": "^3.8.1",
     "webpack-dev-server": "^2.9.4",
-    "webpack-visualizer-plugin": "^0.1.11",
-    "ws": "^3.2.0"
+    "webpack-visualizer-plugin": "^0.1.11"
   }
 }

@@ -2,13 +2,6 @@ var fs = require("fs");
 var webpack = require("webpack");
 var Visualizer = require('webpack-visualizer-plugin');
 
-var entryPoints = {};
-fs.readdirSync("./entry")
-    .filter(x => x.endsWith(".ts"))
-    .forEach(x => entryPoints[x.slice(0, -3)] = "./entry/" + x);
-
-console.log(entryPoints);
-
 module.exports = env => {
     return [getConfig(env)];
 }
@@ -17,10 +10,12 @@ function getConfig (env) {
     let node = env && !!env.node || false;
 
     let obj = {
-        entry: entryPoints,
+        entry: entryPoints = {
+            index: "./index.ts"
+        },
         output: {
             // Eh... our html files are in the entry folder, so we nest everything further in the entry folder.
-            filename: "./dist/[name].js",
+            filename: "./[name].js",
         },
 
         // Enable sourcemaps for debugging webpack's output.
