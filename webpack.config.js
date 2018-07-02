@@ -15,8 +15,7 @@ function getConfig (env) {
             index: "./index.ts"
         },
         output: {
-            // Eh... our html files are in the entry folder, so we nest everything further in the entry folder.
-            filename: "./[name].js",
+            filename: "../[name].js",
             libraryTarget: "commonjs2"
         },
 

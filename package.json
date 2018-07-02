@@ -4,7 +4,7 @@
     "build": "bash build.sh"
   },
   "name": "ws-class",
-  "version": "0.0.4",
+  "version": "0.0.6",
   "main": "index.js",
   "author": "yeerkkiller1 <yeerkkiller1@gmail.com>",
   "license": "MIT",
@@ -12,13 +12,16 @@
     "ws": "^3.2.0"
   },
   "devDependencies": {
-    "webpack-cli": "^3.0.8",
-    "ts-loader": "^4.4.1",
     "@types/node": "^7.0.12",
     "@types/ws": "^3.2.0",
+    "@types/jasmine": "^2.8.7",
+    "webpack-cli": "^3.0.8",
+    "ts-loader": "^4.4.1",
+    "jasmine": "^3.1.0",
     "typescript": "^2.8.1",
     "webpack": "^4.12.1",
     "webpack-dev-server": "^2.9.4",
-    "webpack-visualizer-plugin": "^0.1.11"
+    "webpack-visualizer-plugin": "^0.1.11",
+    "source-map-loader": "^0.2.3"
   }
 }
