@@ -1,16 +1,18 @@
 {
     "compilerOptions": {
         "outDir": "./dist/",
+        "outFile": "./typesIndex.js",
         "sourceMap": true,
         "strict": true,
-        "module": "commonjs",
+        "module": "system",
         "target": "es2017",
         "jsx": "react",
+        "declaration": true,
         "types": [
             "node"
         ]
     },
     "exclude": [
-        "index.d.ts"
+        "typesIndex.d.ts"
     ]
 }

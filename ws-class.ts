@@ -1,3 +1,6 @@
+/// <reference path="src/conn/conn.d.ts" />
+/// <reference path="src/conn/types.d.ts" />
+
 import { CreateConnToServer, StartServer } from "./src/conn/serverConn";
 import { StreamConnToClass, CreateClassFromConn } from "./src/conn/connStreams";
 

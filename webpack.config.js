@@ -1,6 +1,7 @@
 var fs = require("fs");
 var webpack = require("webpack");
-var Visualizer = require('webpack-visualizer-plugin');
+var Visualizer = require("webpack-visualizer-plugin");
+var DeclarationBundlerPlugin = require("./fixed-declaration-bundler-webpack-plugin");
 
 module.exports = env => {
     return [getConfig(env)];
@@ -12,7 +13,7 @@ function getConfig (env) {
     let obj = {
         mode: "production",
         entry: entryPoints = {
-            index: "./index.ts"
+            index: "./ws-class.ts"
         },
         output: {
             filename: "../[name].js",
