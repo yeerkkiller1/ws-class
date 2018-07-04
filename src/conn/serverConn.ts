@@ -1,9 +1,31 @@
 import {ConnHolder} from "./ConnHolder";
 import * as ws from "ws";
+import { StartServerFake, CreateConnToServerFake } from "./fakes/wsFakes";
 
-export function CreateServerConn(ws: ws): Conn {
+
+export function StartServer(port: number, onConn: (conn: Conn) => void): void {
+    if(NODE_CONSTANT) {
+        if(TEST) {
+            return StartServerFake(port, onConn);
+        }
+        let wsServer = new ws.Server({ port: 6080 });
+        wsServer.on("connection", connRaw => {
+            console.log("Server received a new connection");
+            let conn = CreateServerConn(connRaw);
+            onConn(conn);
+        });
+        wsServer.on("error", (err) => {
+            console.error(err);
+        });
+        return;
+    }
+    throw new Error(`Tried to start websocket server in browser.`);
+}
+
+function CreateServerConn(ws: ws): Conn {
     let conn = new ConnHolder(
         data => ws.send(JSON.stringify(data)),
+        buf => ws.send(buf),
         () => ws.close(),
         () => ws.readyState === ws.CLOSED || ws.readyState === ws.CLOSING,
         undefined,
@@ -32,10 +54,14 @@ export function CreateServerConn(ws: ws): Conn {
 
 export function CreateConnToServer(url: string): Conn {
     if(NODE_CONSTANT) {
+        if(TEST) {
+            return CreateConnToServerFake(url);
+        }
         let rawConn = new ws(url);
 
         let conn = new ConnHolder(
             data => rawConn.send(JSON.stringify(data)),
+            buf => rawConn.send(buf),
             () => rawConn.close(),
             () => rawConn.readyState === rawConn.CLOSED || rawConn.readyState === rawConn.CLOSING,
             undefined,

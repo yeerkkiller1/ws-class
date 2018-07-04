@@ -1,4 +1,4 @@
-import { throws, throwIfNotImplementsData } from "../reflection/assert";
+import { throws, throwIfNotImplementsData } from "./assert";
 
 describe("types for testing", () => {
     describe("throwIfNotImplementsData", () => {

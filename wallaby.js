@@ -23,6 +23,13 @@ module.exports = function (wallaby) {
 
         hints: {
             ignoreCoverage: /(ignore|exclude) coverage/
-        }
+        },
+
+        setup: function() {
+            let global = Function('return this')();
+            global.TEST = true;
+            global.NODE = true;
+            global.NODE_CONSTANT = true;
+        },
     };
 };

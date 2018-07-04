@@ -1,12 +1,13 @@
-declare var NODE_CONSTANT: boolean;
-declare var NODE: boolean;
-
 type UnsubscribeId = string;
 
-// https://stackoverflow.com/questions/41476063/typescript-remove-key-from-type-subtraction-type
-type Omit<O, D extends string> = Pick<O, Exclude<keyof O, D>>;
 
-interface Packet<Payload = any, Kind = any> {
+type SerializableReturnType = (
+    Types.AnyAllNoObjectBuffer
+);
+
+
+
+interface Packet<Payload = (Types.AnyAllNoObjectBuffer), Kind extends string = string> {
     Kind: Kind;
 
     // Goes from most specific to least specific. You should push to the and, and pop from the end
@@ -38,13 +39,17 @@ type BetterInherit<Interface extends Implementor, Implementor> = {};
 type _Packets = BetterInherit<Packets, Packet<any, string>>;
 
 
-// TODO, make this better
+// We need to use &, as Controller inverts the assignment direction, so this type is assigned to the
+//  real type, instead of the other way around.
 type ProxyAny = (
     string & number & boolean & null & undefined & void
     & string[] & number[] & boolean[] & null[] & undefined[]
 );
+
+
+
 interface FunctionWeCanUseOverAConn {
-    (...args: ProxyAny[]): Promise<Types.AnyAll>|void;
+    (...args: ProxyAny[]): Promise<SerializableReturnType>|void;
 }
 
 
@@ -85,27 +90,9 @@ interface ControllerExtraProperties {
     RemoteClosed(id: string): void;
 }
 
-interface ConnRaw {
-    /** callback is called when we receive data. */
-    Subscribe(callback: (packet: Packet<{}|undefined, string>) => void): UnsubscribeId;
-    Unsubscribe(id: UnsubscribeId): void;
-
-    SubscribeOnOpen(id: string, callback: () => void): void;
-    UnsubscribeOnOpen(id: UnsubscribeId): void;
-
-    SendRaw(packet: Packet<{}|undefined, string>): void;
-
-    IsConnecting(): boolean;
-    IsOpen(): boolean;
-    IsClosedPermanent(): boolean;
-    /** Closing is permenant. If you call Close, Reconnect MUST not reconnect. */
-    Close(): void;
-    Reconnect(): void;
-}
-
 interface Conn {
     /** callback is called when we receive data. */
-    Subscribe(callback: (packet: Packet<{}|undefined, string>) => void): UnsubscribeId;
+    Subscribe(callback: (packet: Packet) => void): UnsubscribeId;
     Unsubscribe(id: UnsubscribeId): void;
 
     SubscribeOnOpen(id: string, callback: () => void): void;
@@ -117,7 +104,7 @@ interface Conn {
     /** Closing is permenant. */
     Close(): void;
 
-    Send(packet: Packet<{}|undefined, string>): void;
+    Send(packet: Packet): void;
 
     /** Gets the local unique identifier for this connection. This is is not known about remotely (unless we send it remotely).
      *      Also, this is useless clientside. A client likely only has one connection, and with the id being local this is not useful, and may throw clientside.

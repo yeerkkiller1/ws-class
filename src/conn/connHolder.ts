@@ -1,17 +1,26 @@
+import { BufferSerialization } from "./bufferSerialization";
+
 let UID = Math.random();
 let nextId = 0;
 export function randomUID(prefix = "UID") {
     return prefix + (+new Date()).toString() + "." + (nextId++);
 }
 
-export class ConnHolder<PacketType extends Packets> implements Conn {
+
+export class ConnHolder implements Conn {
     constructor(
-        private send: (packet: PacketType) => void,
+        private sendObject: (packet: Types.AnyAllNoObject) => void,
+        private sendBuffer: (packet: Buffer) => void,
         private close: () => void,
         private isDefinitelyDead = () => false,
         private id = randomUID("ConnHolder_"),
         private isOpen = true
     ) { }
+
+    bufferSerialization = new BufferSerialization<Packet>(
+        this.sendObject,
+        this.sendBuffer
+    );
 
     GetLocalId(): string {
         //if(!NODE) throw new Error("Cannot call GetLocalId in chrome. You should inspect a packet to see where it came from, as the connection to you is always going to the same id independent of the source.");
@@ -22,8 +31,8 @@ export class ConnHolder<PacketType extends Packets> implements Conn {
 
     nextCallbackId: number = 0;
 
-    callbacks: { [id: string]: (packet: PacketType) => void } = {};
-    Subscribe(callback: (packet: PacketType) => void): UnsubscribeId {
+    callbacks: { [id: string]: (packet: Packet) => void } = {};
+    Subscribe(callback: (packet: Packet) => void): UnsubscribeId {
         let callbackId = this.nextCallbackId++ + "";
         this.callbacks[callbackId] = callback;
         return callbackId;
@@ -31,7 +40,10 @@ export class ConnHolder<PacketType extends Packets> implements Conn {
     Unsubscribe(id: UnsubscribeId): void {
         delete this.callbacks[id];
     }
-    _OnMessage(packet: PacketType) {
+    _OnMessage(inputObj: Types.AnyAllNoObject | Buffer) {
+        let obj = this.bufferSerialization.Received(inputObj);
+        if(obj === null) return;
+        let packet: Packet = obj.obj;
         for(let key in this.callbacks) {
             let callback = this.callbacks[key];
             callback(packet);
@@ -50,7 +62,7 @@ export class ConnHolder<PacketType extends Packets> implements Conn {
         delete this.callbacksOnOpen[id];
     }
 
-    queuedPackets: PacketType[] = [];
+    queuedPackets: Packet[] = [];
     _OnOpen() {
         if(this.isOpen) {
             throw new Error("Is open called multiple times");
@@ -58,7 +70,7 @@ export class ConnHolder<PacketType extends Packets> implements Conn {
         this.isOpen = true;
 
         // Packets in OnOpen callbacks need to be sent before other packets, or else you OnOpen handlers are pointless.
-        let packetsBeforeOpen: PacketType[] = this.queuedPackets;
+        let packetsBeforeOpen: Packet[] = this.queuedPackets;
         this.queuedPackets = [];
 
         let callbacks = this.callbacksOnOpen;
@@ -69,16 +81,13 @@ export class ConnHolder<PacketType extends Packets> implements Conn {
             callback();
         }
 
-        let queuedPackets = this.queuedPackets;
-        for(let i = 0; i < queuedPackets.length; i++) {
-            this.send(queuedPackets[i]);
-        }
-        for(let i = 0; i < packetsBeforeOpen.length; i++) {
-            this.send(packetsBeforeOpen[i]);
+        let queuedPackets = this.queuedPackets.concat(packetsBeforeOpen);
+        for(let packet of queuedPackets) {
+            this.bufferSerialization.Send(packet);
         }
     }
 
-    Send(packet: PacketType): void {
+    Send(packet: Packet): void {
         if(this.closeCalled) throw new Error("Permanently closed.");
         Object.assign(packet, {
             SourceId: packet.SourceId.concat(this.GetLocalId())
@@ -87,7 +96,7 @@ export class ConnHolder<PacketType extends Packets> implements Conn {
             this.queuedPackets.push(packet);
             return;
         }
-        this.send(packet);
+        this.bufferSerialization.Send(packet);
     }
 
     callbacksOnClose: { [id: string]: () => void } = {};

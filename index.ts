@@ -1,22 +1,13 @@
-// Expose ws indirectly, so the user never has to deal with websockets.
-
-import * as ws from "ws";
-import { CreateServerConn, CreateConnToServer } from "./src/conn/serverConn";
+import { CreateConnToServer, StartServer } from "./src/conn/serverConn";
 import { StreamConnToClass, CreateClassFromConn } from "./src/conn/connStreams";
 
-
+/**
 interface ClientTest {
     hi(msg: string): Promise<number>;
 }
-
-//todonext
-// Make Bidirectional controllers actually type safe.
-//  Hmm... I am almost certain we need to call a function (probably twice) to make
-//  bidirectionality safe.
 interface ServerTest extends Bidirect<ServerTest, ClientTest> {
     test(y: string): Promise<number>;
 }
-
 
 // Server
 {
@@ -33,45 +24,47 @@ interface ServerTest extends Bidirect<ServerTest, ClientTest> {
         }
     }
     let server = new Server();
-
-    let wsServer = new ws.Server({ port: 6080 });
-    wsServer.on("connection", connRaw => {
-        console.log("Server got connection")
-        let conn = CreateServerConn(connRaw);
-        StreamConnToClass(conn, server);
-    });
-    wsServer.on("error", (err) => {
-        console.error(err);
-    });
+    HostServer(6080, server);
 }
-
 
 // Client
 {
-
     class ClientImpl implements ClientTest {
         async hi(msg: string) {
             return msg.length;
         }
     }
 
+    let server = ConnectToServer<ServerTest>({ host: "localhost", port: 6080, bidirectionController: new ClientImpl() });
+    
+    (async () => {
+        console.log("call to test", await server.test("you"));
+    })();
+}
+*/
 
-    let websocket = new ws("ws://localhost:6080");
-    let conn = CreateServerConn(websocket);
+export function HostServer<T extends (BidirectAny<T, any> | ControllerAny<T>)>(port: number, server: T) {
+    StartServer(port, conn => {
+        StreamConnToClass(conn, server);
+    });
+}
 
-    let clientConn = CreateClassFromConn<ServerTest>({
+export function ConnectToServer<T extends (Bidirect<T, any> | Controller<T>)>(
+    parameters: {
+        port: number;
+        host: string;
+        // Eh... I can't get the types on this parameter to work (we should be able to know if it should be optional or not,
+        //  but we can't, because of https://github.com/Microsoft/TypeScript/issues/25357), so I'll just put it here, and make it always optional.
+        bidirectionController?: Exclude<T["client"], undefined>
+    }
+): T {
+    let { bidirectionController, host, port } = parameters;
+    let conn = CreateConnToServer(`ws://${host}:${port}`);
+
+    let client = CreateClassFromConn<T>({
         conn: conn,
-        bidirectionController: new ClientImpl()
+        bidirectionController: bidirectionController
     } as any);
 
-    (async () => {
-        console.log("call to test", await clientConn.test("you"));
-    })();
-    
-    console.log("done sync code");
-
-
-    todonext
-    // We need a websocket test implementation, so we can run tests simulating websockets.
-    // Write unit tests, and use wallaby to run them
+    return client;
 }

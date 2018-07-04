@@ -8,12 +8,19 @@ declare namespace Types {
 
     //Eh... we need to hack around `type X = X[]` not being allowed, even though it is not really circular.
     //type AnyWithoutArray = Any[];
-    export type AnyArr = Dictionary | Primitive | object;
+    type AnyArrNoObject = Dictionary | Primitive;
+    export type AnyArr = AnyArrNoObject | object;
+    
     export interface DictionaryArr { [key: string]: AnyArr }
     export type Arr = Array<AnyArr | AnyArr[] | AnyArr[][] | AnyArr[][][] | AnyArr[][][][] | AnyArr[][][][][]>
     export type AnyAll = AnyArr | Arr;
 
-    export type AnyAllNoObject = Exclude<AnyArr, object> | Arr;
+
+    type MakeArr<T> = T | T[] | T[][] | T[][][] | T[][][][] | T[][][][][];
+    export type AnyAllNoObject = MakeArr<Primitive | { [key in string]: AnyAllNoObject }>;// | { [key: number]: AnyAllNoObject };
+
+    export type AnyAllNoObjectBuffer = MakeArr<Buffer | Primitive | { [key in string]: AnyAllNoObjectBuffer }>;// | { [key: number]: AnyAllNoObjectBuffer };
+
 
 
     export type Graph<T> = { value: T; children: {[key: string]: Graph<T>} };

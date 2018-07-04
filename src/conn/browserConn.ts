@@ -4,6 +4,7 @@ export function CreateBrowserConn(url: string): Conn {
     let ws: WebSocket;
     let conn = new ConnHolder(
         packet => ws.send(JSON.stringify(packet)),
+        buf => ws.send(buf),
         () => ws.close(),
         () => ws.readyState === ws.CLOSING || ws.readyState === ws.CLOSED,
         undefined,
@@ -18,7 +19,11 @@ export function CreateBrowserConn(url: string): Conn {
         conn._OnClose();
     };
     ws.onmessage = (ev) => {
-        conn._OnMessage(JSON.parse(ev.data));
+        if(ev.data instanceof Buffer) {
+            conn._OnMessage(ev.data);
+        } else {
+            conn._OnMessage(JSON.parse(ev.data));
+        }
     };
 
     return conn;

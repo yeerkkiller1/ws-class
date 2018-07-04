@@ -80,7 +80,7 @@ function CreateClassFromConnInternal<
 ): T & ConnExtraProperties {
     let { conn, destId, bidirectionController } = parameters;
 
-    console.log(`CreateClassFromConnInternal conn: ${conn.GetLocalId()}, destid: ${destId}`);
+    //console.log(`CreateClassFromConnInternal conn: ${conn.GetLocalId()}, destid: ${destId}`);
 
     let nextSequenceNumber: number = 0;
 
@@ -94,14 +94,14 @@ function CreateClassFromConnInternal<
 
     let functionCallbacks: {
         [id: string]: {
-            promise: Promise<Types.AnyAll|void>,
-            resolve: (obj: Types.AnyAll|void ) => void,
+            promise: Promise<SerializableReturnType|void>,
+            resolve: (obj: SerializableReturnType|void ) => void,
             reject: (error: SerializedError) => void
         }
     } = {};
 
     function createHandler(name: string): (
-        (this: BiProperties, ...args: any[]) => Promise<Types.AnyAll> | void
+        (this: BiProperties, ...args: any[]) => Promise<SerializableReturnType> | void
     ) {
         // Idk... people are trying to determine if we are a promise?
         if(name === "then") {
@@ -131,9 +131,9 @@ function CreateClassFromConnInternal<
 
         return function(this: BiProperties, ...args: any[]) {
             let sequenceId = nextSequenceNumber++;
-            let resolve: (obj: Types.AnyAll|void) => void = undefined as any;
+            let resolve: (obj: SerializableReturnType|void) => void = undefined as any;
             let reject: (error: SerializedError) => void = undefined as any;
-            let promise = new Promise<Types.AnyAll|void>((_resolve, _reject) => {
+            let promise = new Promise<SerializableReturnType|void>((_resolve, _reject) => {
                 resolve = _resolve;
                 reject = _reject;
             });
@@ -163,6 +163,7 @@ function CreateClassFromConnInternal<
     conn.Subscribe(packetAny => {
         let packet = packetAny as Packets;
         switch(packet.Kind) {
+            // ignore coverage
             default: throw new Error("Packet Kind not implemented " + (packet as any).Kind);
             case "FunctionCall": break;
             case "FunctionReturn":
@@ -170,6 +171,7 @@ function CreateClassFromConnInternal<
                 let callback = functionCallbacks[sequenceId];
 
                 //console.log("Received FunctionReturn. From", packet.DestId, "To", packet.SourceId, "Kind", packet.Kind, "Value", JSON.stringify(packet.Payload).slice(0, 200));
+                // ignore coverage
                 if(!callback) {
                     console.error("Received FunctionReturn with sequenceId we either already received, or that does not exist. From", packet.DestId, "To", packet.SourceId, "Kind", packet.Kind, "Value", JSON.stringify(packet.Payload).slice(0, 200));
                     return;
@@ -186,7 +188,7 @@ function CreateClassFromConnInternal<
     
     var controller = new Proxy<ConnExtraProperties>({
         GetConn() {
-            return conn
+            return conn;
         },
         CloseConnection() {
             send({
@@ -215,11 +217,7 @@ export function StreamConnToClass<
     biClass = false
 ): void {
 
-    console.log(`StreamConnToClass from ${conn.GetLocalId()}, ${JSON.stringify({biClass})}`);
-
-    function send(packet: Packets) {
-        conn.Send(packet);
-    }
+    //console.log(`StreamConnToClass from ${conn.GetLocalId()}, ${JSON.stringify({biClass})}`);
 
     // Every class has a bidirectional controller, as we can't check if it needs to be directional or not
     //  from the given T type parameter (as that is just a type), or from instance (as the user doesn't do any bidirectional
@@ -241,7 +239,7 @@ export function StreamConnToClass<
         let dest = packet.SourceId.slice();
         let destHash = JSON.stringify(dest);
         if(!(destHash in biControllerCache)) {
-            console.log(`Call CreateClassFromConn from ${conn.GetLocalId()}`)
+            //console.log(`Call CreateClassFromConn from ${conn.GetLocalId()}`)
             biControllerCache[destHash] = CreateClassFromConn<any>({
                 conn: conn,
                 destId: dest,
@@ -253,7 +251,29 @@ export function StreamConnToClass<
     conn.Subscribe(packetAny => {
         let packet = packetAny as Packets;
 
+        function sendReturn(obj: Types.AnyAllNoObject | Types.AnyAllNoObjectBuffer) {
+            conn.Send({
+                SourceId: [],
+                DestId: packet.SourceId,
+                Kind: "FunctionReturn",
+                Payload: {
+                    Result: obj
+                }
+            });
+        }
+        function sendErr(errText: string) {
+            conn.Send({
+                SourceId: [],
+                DestId: packet.SourceId,
+                Kind: "FunctionReturn",
+                Payload: {
+                    Error: errText
+                }
+            });
+        }
+
         switch(packet.Kind) {
+            // ignore coverage
             default: throw new Error("Packet Kind not implemented " + (packet as any).Kind);
             case "FunctionReturn": break;
             case "CloseConnection":
@@ -262,32 +282,43 @@ export function StreamConnToClass<
             case "FunctionCall":
                 let payload = packet.Payload;
                 let fncName = payload.FncName as keyof Omit<T, "client">;
-                if(!(fncName in instance)) throw new Error("Cannot find function " + fncName);
-
-                let instanceType = instance as Controller<any>;
-                let prop: Types.AnyAll|Function = instanceType[fncName];
-                if(typeof prop !== "function") {
-                    throw new Error(`Tried to call non function ${fncName}`);
-                }
-
-                let proto = (instance as any)["__proto__"];
-                if(!(fncName in proto) || typeof proto[fncName] !== "function") {
-                    throw new Error(`Remote tried to call function that existed in instance, but is not a function in __proto__. This means the function wasn't meant to be exposed, and is just a property on the object. Fnc name: ${fncName}`);
-                }
 
                 let biInstance = instance as BiProperties;
-                if(!biClass) {
-                    biInstance.client = getBiController(packet);
-                }
-                biInstance.syncConnection = conn;
-                biInstance.syncPacket = packet;
 
-                let result: Promise<Types.Primitive|void>|undefined = undefined;
+                let result: Promise<SerializableReturnType>|undefined = undefined;
                 let error: Error|undefined = undefined;    
                 try {
+                    if(!(fncName in instance)) throw new Error("Cannot find function " + fncName);
+
+
+                    let instanceType = instance as Controller<any>;
+                    let prop: Types.AnyAll|Function = instanceType[fncName];
+                    if(typeof prop !== "function") {
+                        throw new Error(`Tried to call non function ${fncName}`);
+                    }
+
+                    let proto = (instance as any)["__proto__"];
+                    if(!(fncName in proto) || typeof proto[fncName] !== "function") {
+                        throw new Error(`Remote tried to call function that existed in instance, but is not a function in __proto__. This means the function wasn't meant to be exposed, and is just a property on the object. Fnc name: ${fncName}`);
+                    }
+
+                    if(!biClass) {
+                        biInstance.client = getBiController(packet);
+                    }
+                    biInstance.syncConnection = conn;
+                    biInstance.syncPacket = packet;
+
                     // Call function with the instance context, with client set correctly.
                     let fnc: Function = prop;
                     result = fnc.apply(instance, payload.Parameters);
+
+                    if(String(fncName).endsWith("_VOID")) {
+                        if(result) {
+                            console.error(`Cannot return a result from a function ending with _VOID. These are special functions that do not have return values (to save packets). Tried to return ${result}.`);
+                        }
+                        // We can't throw, as the client isn't even listening for the result, so they won't have anywhere to throw the error.
+                        return;
+                    }
                 } catch(e) {
                     console.error(`Error in fnc ${fncName}: ${e}`, e);
                     error = e;
@@ -297,57 +328,20 @@ export function StreamConnToClass<
                     biInstance.syncConnection = undefined;
                     biInstance.syncPacket = undefined;
                 }
-                
-
-                if(String(fncName).endsWith("_VOID")) {
-                    if(result) {
-                        throw new Error(`Cannot return a result from a function ending with _VOID. These are special functions that do not have return values (to save packets). Tried to return ${result}.`);
-                    }
-                    return;
-                }
 
                 if(error !== undefined) {
-                    send({
-                        SourceId: [],
-                        DestId: packet.SourceId,
-                        Kind: "FunctionReturn",
-                        Payload: {
-                            Error: error.stack + ""
-                        }
-                    });
+                    sendErr(error.stack + "");
                 } else {
                     if(!result) {
-                        send({
-                            SourceId: [],
-                            DestId: packet.SourceId,
-                            Kind: "FunctionReturn",
-                            Payload: {
-                                Result: result
-                            }
-                        });
+                        sendReturn(result);
                     } else {
                         result
                             .then(result => {
-                                send({
-                                    SourceId: [],
-                                    DestId: packet.SourceId,
-                                    Kind: "FunctionReturn",
-                                    Payload: {
-                                        Result: result
-                                    }
-                                });
+                                sendReturn(result);
                             })
                             .catch(error => {
                                 let errorText = (error && error.stack || error) + "";
-                                console.log("Error in promise: " + errorText);
-                                send({
-                                    SourceId: [],
-                                    DestId: packet.SourceId,
-                                    Kind: "FunctionReturn",
-                                    Payload: {
-                                        Error: errorText
-                                    }
-                                });
+                                sendErr(errorText);
                             });
                         ;
                     }

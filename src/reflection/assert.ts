@@ -267,14 +267,31 @@ export function notImplementsData(proposedData: Types.AnyAll, dataContract: Type
     return path;
 }
 
-export function throws(code: () => void) {
-    let didThrow = false;
+export function throws(code: () => void): void {
     try {
-        code();
+        let result = code();
     } catch(e) {
         return;
     }
+
     // This is the one line we will never have code coverage for
+    /* ignore coverage */ throw new Error("Expected an error");
+}
+
+export function throwsAsync(code: () => Promise<void>): Promise<void> {
+    try {
+        let result = code();
+        return new Promise((resolve, reject) => {
+            result.then(() => {
+                /* ignore coverage */ reject("Expected an error");
+            }).catch(() => {
+                resolve();
+            });
+        });
+    } catch(e) {
+        return Promise.resolve();    
+    }
     
+    // This is the one line we will never have code coverage for
     /* ignore coverage */ throw new Error("Expected an error");
 }
