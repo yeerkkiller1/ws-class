@@ -1,5 +1,6 @@
 /// <reference path="src/conn/conn.d.ts" />
 /// <reference path="src/conn/types.d.ts" />
+/// <reference path="src/reflection/reflection.d.ts" />
 /// <reference types="node" />
 declare module "src/reflection/type" {
     export function isNumber(str: string): boolean;
