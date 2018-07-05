@@ -11,7 +11,7 @@ function getConfig (env) {
     let node = env && !!env.node || false;
 
     let obj = {
-        mode: "production",
+        mode: "development",
         entry: entryPoints = {
             index: "./ws-class.ts"
         },
