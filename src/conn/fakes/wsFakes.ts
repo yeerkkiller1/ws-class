@@ -59,6 +59,7 @@ export function simulateNetwork<T>(
         let minBandwidthTime = newestScheduleTime + sizePerVal(val) * msPerVal;
 
         let time = Math.max(latencyTime, minBandwidthTime);
+        newestScheduleTime = time;
 
         valSchedule.push({
             val,
