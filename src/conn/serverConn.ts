@@ -8,7 +8,10 @@ export function StartServer(port: number, onConn: (conn: Conn) => void): void {
         if(TEST) {
             return StartServerFake(port, onConn);
         }
-        let wsServer = new ws.Server({ port: 6080 });
+        let wsServer = new ws.Server({ port: port });
+        wsServer.on("listening", () => {
+            console.log(`Started listening on ${port}`)
+        });
         wsServer.on("connection", connRaw => {
             console.log("Server received a new connection");
             let conn = CreateServerConn(connRaw);
