@@ -4,6 +4,7 @@ declare namespace Types {
     export type Any = Dictionary | Primitive;
     export interface Dictionary { [key: string]: Any }
     export type Primitive = string|number|boolean|null|undefined|void;
+    export type PrimitiveAnd = string&number&boolean&null&undefined&void;
 
 
     //Eh... we need to hack around `type X = X[]` not being allowed, even though it is not really circular.
@@ -17,9 +18,13 @@ declare namespace Types {
 
 
     type MakeArr<T> = T | T[] | T[][] | T[][][] | T[][][][] | T[][][][][];
-    export type AnyAllNoObject = MakeArr<Primitive | { [key in string]: AnyAllNoObject }>;// | { [key: number]: AnyAllNoObject };
+    export type AnyAllNoObject = MakeArr<Primitive | { [key in string]: AnyAllNoObject }>;
 
     export type AnyAllNoObjectBuffer = MakeArr<Buffer | Primitive | { [key in string]: AnyAllNoObjectBuffer }>;// | { [key: number]: AnyAllNoObjectBuffer };
+
+    
+    type MakeAndArr<T> = T & T[] & T[][] & T[][][] & T[][][][] & T[][][][][];
+    export type AnyAndAll = MakeAndArr<PrimitiveAnd & { [key in string]: AnyAndAll }>;
 
 
 

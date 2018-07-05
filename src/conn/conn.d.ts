@@ -41,15 +41,8 @@ type _Packets = BetterInherit<Packets, Packet<any, string>>;
 
 // We need to use &, as Controller inverts the assignment direction, so this type is assigned to the
 //  real type, instead of the other way around.
-type ProxyAny = (
-    string & number & boolean & null & undefined & void
-    & string[] & number[] & boolean[] & null[] & undefined[]
-);
-
-
-
 interface FunctionWeCanUseOverAConn {
-    (...args: ProxyAny[]): Promise<SerializableReturnType>|void;
+    (...args: Types.AnyAndAll[]): Promise<SerializableReturnType>|void;
 }
 
 
