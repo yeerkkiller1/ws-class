@@ -49,7 +49,7 @@ export function simulateNetwork<T>(
             if(valSchedule.length > 0) {
                 waitForScheduledTime(valSchedule[0].time);
             }
-        }, +new Date() - time);
+        }, time - +new Date());
     }
 
     return (val) => {

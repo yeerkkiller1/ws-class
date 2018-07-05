@@ -84,6 +84,7 @@ export function CreateConnToServer(url: string): Conn {
         if(throttleInfo !== null) {
             let info = throttleInfo;
             let msPerByte = 1 / (info.kbPerSecond * 1024 / 1000);
+            console.log(`Creating throttled connection. ${msPerByte} milliseconds per byte, ${info.latencyMs} ms latency.`);
             send = simulateNetwork<string|Buffer>(
                 sendBase,
                 err => {
