@@ -78,7 +78,7 @@ declare module "src/controlFlow/error" {
 declare module "src/conn/fakes/wsFakes" {
     /** Must be used in ports. */
     export function DEBUG_ASSIGN_PORT(): number;
-    export function simulateNetwork<T>(output: (val: T) => void, onError: (err: any) => void, latencyMs?: number, msPerVal?: number): (val: T) => void;
+    export function simulateNetwork<T>(output: (val: T) => void, onError: (err: any) => void, latencyMs?: number, msPerVal?: number, sizePerVal?: (val: T) => number): (val: T) => void;
     /** Creates two connections that send messages to each other, simulating a network connection between them. */
     export function createConnPairs(latencyMs?: number): {
         clientConn: Conn;
@@ -89,6 +89,11 @@ declare module "src/conn/fakes/wsFakes" {
 }
 declare module "src/conn/serverConn" {
     export function StartServer(port: number, onConn: (conn: Conn) => void): void;
+    interface ThrottleInfo {
+        latencyMs: number;
+        kbPerSecond: number;
+    }
+    export function ThrottleConnections(newThrottleInfo: ThrottleInfo, code: () => void): void;
     export function CreateConnToServer(url: string): Conn;
 }
 declare module "src/conn/connStreams" {
@@ -110,6 +115,7 @@ declare module "src/conn/connStreams" {
     instance: T, biClass?: boolean): void;
 }
 declare module "ws-class" {
+    import { ThrottleConnections } from "src/conn/serverConn";
     /**
     interface ClientTest {
         hi(msg: string): Promise<number>;
@@ -157,6 +163,7 @@ declare module "ws-class" {
         host: string;
         bidirectionController?: Exclude<T["client"], undefined>;
     }): T;
+    export { ThrottleConnections };
 }
 declare module "src/conn/browserConn" {
     export function CreateBrowserConn(url: string): Conn;

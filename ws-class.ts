@@ -2,7 +2,7 @@
 /// <reference path="src/conn/types.d.ts" />
 /// <reference path="src/reflection/reflection.d.ts" />
 
-import { CreateConnToServer, StartServer } from "./src/conn/serverConn";
+import { CreateConnToServer, StartServer, ThrottleConnections } from "./src/conn/serverConn";
 import { StreamConnToClass, CreateClassFromConn } from "./src/conn/connStreams";
 
 /**
@@ -72,3 +72,5 @@ export function ConnectToServer<T extends (Bidirect<T, any> | Controller<T>)>(
 
     return client;
 }
+
+export { ThrottleConnections };

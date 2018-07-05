@@ -1,6 +1,6 @@
 import {ConnHolder} from "./ConnHolder";
 import * as ws from "ws";
-import { StartServerFake, CreateConnToServerFake } from "./fakes/wsFakes";
+import { StartServerFake, CreateConnToServerFake, simulateNetwork } from "./fakes/wsFakes";
 
 
 export function StartServer(port: number, onConn: (conn: Conn) => void): void {
@@ -57,6 +57,21 @@ function CreateServerConn(ws: ws): Conn {
     return conn;
 }
 
+interface ThrottleInfo {
+    latencyMs: number;
+    kbPerSecond: number;
+}
+let throttleInfo: ThrottleInfo|null = null;
+export function ThrottleConnections(newThrottleInfo: ThrottleInfo, code: () => void) {
+    let prevThrottleInfo = throttleInfo;
+    try {
+        throttleInfo = newThrottleInfo;
+        code();
+    } finally {
+        throttleInfo = prevThrottleInfo;
+    }
+}
+
 export function CreateConnToServer(url: string): Conn {
     if(NODE_CONSTANT) {
         if(TEST) {
@@ -64,9 +79,29 @@ export function CreateConnToServer(url: string): Conn {
         }
         let rawConn = new ws(url);
 
+        let send = (data: string|Buffer) => sendBase(data);
+
+        if(throttleInfo !== null) {
+            let info = throttleInfo;
+            let msPerByte = 1 / (info.kbPerSecond * 1024 / 1000);
+            send = simulateNetwork<string|Buffer>(
+                sendBase,
+                err => {
+                    console.error("Network err", err);
+                },
+                info.latencyMs,
+                msPerByte,
+                x => x.length
+            );
+        }
+
+        function sendBase(data: string|Buffer) {
+            rawConn.send(data);
+        }
+
         let conn = new ConnHolder(
-            data => rawConn.send(JSON.stringify(data)),
-            buf => rawConn.send(buf),
+            data => send(JSON.stringify(data)),
+            buf => send(buf),
             () => rawConn.close(),
             () => rawConn.readyState === rawConn.CLOSED || rawConn.readyState === rawConn.CLOSING,
             undefined,

@@ -14,7 +14,13 @@ let servers: {
     }
 } = {};
 
-export function simulateNetwork<T>(output: (val: T) => void, onError: (err: any) => void, latencyMs = 100, msPerVal = 10): (val: T) => void {
+export function simulateNetwork<T>(
+    output: (val: T) => void,
+    onError: (err: any) => void,
+    latencyMs = 100,
+    msPerVal = 10,
+    sizePerVal: (val: T) => number = () => 1
+): (val: T) => void {
     let valSchedule: {
         val: T;
         time: number;
@@ -50,7 +56,7 @@ export function simulateNetwork<T>(output: (val: T) => void, onError: (err: any)
         let curTime = +new Date();
 
         let latencyTime = curTime + latencyMs;
-        let minBandwidthTime = newestScheduleTime + latencyMs;
+        let minBandwidthTime = newestScheduleTime + sizePerVal(val) * msPerVal;
 
         let time = Math.max(latencyTime, minBandwidthTime);
 
