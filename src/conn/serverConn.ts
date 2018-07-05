@@ -41,11 +41,13 @@ function CreateServerConn(ws: ws): Conn {
     ws.on("close", () => {
         conn._OnClose();
     });
-    ws.on("message", (ev) => {
-        if(typeof ev !== "string") {
-            throw new Error("Received message with type other than string, type was " + typeof ev);
+    ws.on("message", (data) => {
+        if(data instanceof Buffer) {
+            conn._OnMessage(data);
+        } else if(typeof data !== "string") {
+            throw new Error("Received message with type other than string, type was " + typeof data);
         } else {
-            conn._OnMessage(JSON.parse(ev));
+            conn._OnMessage(JSON.parse(data));
         }
     });
     ws.on("error", err => {
@@ -77,11 +79,13 @@ export function CreateConnToServer(url: string): Conn {
         rawConn.on("close", () => {
             conn._OnClose();
         });
-        rawConn.on("message", (ev) => {
-            if(typeof ev !== "string") {
-                throw new Error("Received message with type other than string, type was " + typeof ev);
+        rawConn.on("message", (data) => {
+            if(data instanceof Buffer) {
+                conn._OnMessage(data);
+            } else if(typeof data !== "string") {
+                throw new Error("Received message with type other than string, type was " + typeof data);
             } else {
-                conn._OnMessage(JSON.parse(ev));
+                conn._OnMessage(JSON.parse(data));
             }
         });
 

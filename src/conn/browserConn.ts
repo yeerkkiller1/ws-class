@@ -21,8 +21,10 @@ export function CreateBrowserConn(url: string): Conn {
     ws.onmessage = (ev) => {
         if(ev.data instanceof Buffer) {
             conn._OnMessage(ev.data);
+        } else if(typeof ev !== "string") {
+            throw new Error("Received message with type other than string, type was " + typeof ev);
         } else {
-            conn._OnMessage(JSON.parse(ev.data));
+            conn._OnMessage(JSON.parse(ev));
         }
     };
 
