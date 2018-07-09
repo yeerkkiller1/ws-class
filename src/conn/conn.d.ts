@@ -68,9 +68,10 @@ type Bidirect<T, C extends Controller<C>> = (
 
 
 type ControllerAny<T> = {
-    [controllerProp in keyof T]: (
-        FunctionWeCanUseOverAConn
-        | Types.AnyAllNoObject
+    [controllerProp in keyof Omit<T, keyof BiProperties>]: (
+        T[controllerProp] extends Function
+        ? FunctionWeCanUseOverAConn
+        : Object | Types.Primitive
     );
 };
 type BidirectAny<T, C extends Controller<C>> = (
