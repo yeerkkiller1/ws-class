@@ -79,6 +79,6 @@ export function ConnectToServer<T extends (Bidirect<T, any> | Controller<T>)>(
     return client;
 }
 
-HostServer(7060, {});
+//HostServer(7060, {});
 
 export { ThrottleConnections };
