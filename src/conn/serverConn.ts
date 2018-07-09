@@ -10,34 +10,9 @@ export function StartServer(port: number, onConn: (conn: Conn) => void): void {
             return StartServerFake(port, onConn);
         }
 
-        const server = createServer((request, response) => {
-            console.log(`Request on ${request.url}`);
-
-            response.setHeader("Access-Control-Allow-Origin", "http://localhost:7035");
-
-            console.log(request.headers);
-            response.end("test");
-        });
-        
-        /*
-        server.on('upgrade', function upgrade(request, socket, head) {
-            const pathname = url.parse(request.url).pathname;
-            
-            if (pathname === '/foo') {
-                wss1.handleUpgrade(request, socket, head, function done(ws) {
-                wss1.emit('connection', ws, request);
-                });
-            } else if (pathname === '/bar') {
-                wss2.handleUpgrade(request, socket, head, function done(ws) {
-                wss2.emit('connection', ws, request);
-                });
-            } else {
-                socket.destroy();
-            }
-        });
-        */
-
-        let wsServer = new ws.Server({ server });
+        // I think the server just ignores CORS? It was complaining before, but isn't now... Which should be fine,
+        //  security should be done on a per connection basis, not with cookies? Or maybe... it is safer to use cookies?
+        let wsServer = new ws.Server({ port });
         wsServer.on("listening", () => {
             console.log(`Started listening on ${port}`)
         });
@@ -50,13 +25,6 @@ export function StartServer(port: number, onConn: (conn: Conn) => void): void {
         wsServer.on("error", (err) => {
             console.error(err);
         });
-
-        server.on("upgrade", (request: any, socket: any, head: any) => {
-            console.log(request.url);
-
-        });
-
-        server.listen(port);
         return;
     }
     throw new Error(`Tried to start websocket server in browser.`);
@@ -161,7 +129,8 @@ export function CreateConnToServer(url: string): Conn {
         rawConn.onclose = () => {
             conn._OnClose();
         };
-        rawConn.onmessage = (data) => {
+        rawConn.onmessage = (ev) => {
+            let data = ev.data;
             if(data instanceof Buffer) {
                 conn._OnMessage(data);
             } else if(typeof data !== "string") {
