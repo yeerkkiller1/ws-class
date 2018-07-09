@@ -1,5 +1,6 @@
 export function createPromiseStream<T>(
-    promiseErrorTimeout = 1000
+    /** -1 means infinite */
+    promiseErrorTimeout = -1
 ): {
     getPromise(): Promise<T>;
     sendValue(val: T|Promise<T>): void;
@@ -26,12 +27,14 @@ export function createPromiseStream<T>(
             // Make a new val request
             return new Promise<T>((resolve, reject) => {
                 let finished = false;
-                setTimeout(() => {
-                    if(!finished) {
-                        finished = true;
-                        reject(new Error("Promise request timed out"));
-                    }
-                }, promiseErrorTimeout);
+                if(promiseErrorTimeout !== -1) {
+                    setTimeout(() => {
+                        if(!finished) {
+                            finished = true;
+                            reject(new Error("Promise request timed out"));
+                        }
+                    }, promiseErrorTimeout);
+                }
                 vals.push({
                     resolve: (val) => {
                         if(finished) {

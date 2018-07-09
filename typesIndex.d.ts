@@ -87,7 +87,9 @@ declare module "src/conn/fakes/wsFakes" {
     export function CreateConnToServerFake(url: string): Conn;
 }
 declare module "src/controlFlow/promise" {
-    export function createPromiseStream<T>(promiseErrorTimeout?: number): {
+    export function createPromiseStream<T>(
+    /** -1 means infinite */
+    promiseErrorTimeout?: number): {
         getPromise(): Promise<T>;
         sendValue(val: T | Promise<T>): void;
         throwErr(err: any): void;
