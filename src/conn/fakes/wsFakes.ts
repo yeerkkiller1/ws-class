@@ -86,27 +86,27 @@ export function createConnPairs(
     */
 
     let clientConn: ConnHolder;
-    let clientReceive: (obj: Types.AnyAllNoObject | Buffer) => void;
+    let clientReceive: (obj: Types.AnyAllNoObject | Uint8Array) => void;
     
     let serverConn: ConnHolder;
-    let serverReceive: (packet: Types.AnyAllNoObject | Buffer) => void;
+    let serverReceive: (packet: Types.AnyAllNoObject | Uint8Array) => void;
 
     let clientClosed = false;
     let serverClosed = false;
 
-    function throwOnConnClosed(connFactory: () => ConnHolder, targetFactory: () => (packet: Types.AnyAllNoObject | Buffer) => void) {
-        let target: (packet: Types.AnyAllNoObject | Buffer) => void;
+    function throwOnConnClosed(connFactory: () => ConnHolder, targetFactory: () => (packet: Types.AnyAllNoObject | Uint8Array) => void) {
+        let target: (packet: Types.AnyAllNoObject | Uint8Array) => void;
         let conn: ConnHolder;
-        return (packet: Types.AnyAllNoObject | Buffer) => {
+        return (packet: Types.AnyAllNoObject | Uint8Array) => {
             conn = conn || connFactory();
             if(conn.IsDead()) {
                 throw new Error(`Cannot send packet on closed connection`);
             }
             target = target || targetFactory();
 
-            if(packet instanceof Buffer) {
+            if(packet instanceof Uint8Array) {
                 target(packet);
-                //target(new Buffer(packet));
+                //target(new ArrayBuffer(packet));
             } else {
                 packet = JSON.parse(JSON.stringify(packet));
                 target(packet);

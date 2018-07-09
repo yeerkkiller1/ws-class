@@ -10,7 +10,7 @@ export function randomUID(prefix = "UID") {
 export class ConnHolder implements Conn {
     constructor(
         private sendObject: (packet: Types.AnyAllNoObject) => void,
-        private sendBuffer: (packet: Buffer) => void,
+        private sendBuffer: (packet: Uint8Array) => void,
         private close: () => void,
         private isDefinitelyDead = () => false,
         private id = randomUID("ConnHolder_"),
@@ -40,7 +40,7 @@ export class ConnHolder implements Conn {
     Unsubscribe(id: UnsubscribeId): void {
         delete this.callbacks[id];
     }
-    _OnMessage(inputObj: Types.AnyAllNoObject | Buffer) {
+    _OnMessage(inputObj: Types.AnyAllNoObject | Uint8Array) {
         let obj = this.bufferSerialization.Received(inputObj);
         if(obj === null) return;
         let packet: Packet = obj.obj;

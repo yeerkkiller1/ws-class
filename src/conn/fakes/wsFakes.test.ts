@@ -80,10 +80,10 @@ if(TEST) {
 
             it("throws on invalid BufferSerialization.Received calls", async () => {
                 let sendObject = createPromiseStream<Types.AnyAllNoObject>();
-                let sendBuffer = createPromiseStream<Buffer>();
+                let sendBuffer = createPromiseStream<Uint8Array>();
 
                 let buf = new BufferSerialization(x => sendObject.sendValue(x), x => sendBuffer.sendValue(x));
-                buf.Send({ a: new Buffer([]) });
+                buf.Send({ a: new Buffer(0) });
 
                 let obj = await sendObject.getPromise();
 
@@ -91,8 +91,8 @@ if(TEST) {
                     buf.Received(obj);
                 });
 
-                buf.Received(new Buffer([]));
-                buf.Received(new Buffer([]));
+                buf.Received(new Buffer(0));
+                buf.Received(new Buffer(0));
 
                 throws(() => {
                     buf.Received(obj);

@@ -1,7 +1,6 @@
 /// <reference path="src/conn/conn.d.ts" />
 /// <reference path="src/conn/types.d.ts" />
 /// <reference path="src/reflection/reflection.d.ts" />
-/// <reference types="node" />
 declare module "src/reflection/type" {
     export function isNumber(str: string): boolean;
     export function isInteger(num: number): boolean;
@@ -21,9 +20,9 @@ declare module "src/conn/bufferSerialization" {
     } | Types.AnyAllNoObjectBuffer)> {
         private sendObject;
         private sendBuffer;
-        constructor(sendObject: (packet: Types.AnyAllNoObject) => void, sendBuffer: (packet: Buffer) => void);
-        pendingBuffers: Buffer[];
-        Received(obj: Types.AnyAllNoObject | Buffer): {
+        constructor(sendObject: (packet: Types.AnyAllNoObject) => void, sendBuffer: (packet: Uint8Array) => void);
+        pendingBuffers: Uint8Array[];
+        Received(obj: Types.AnyAllNoObject | Uint8Array): {
             obj: T;
         } | null;
         Send(obj: T): void;
@@ -40,9 +39,9 @@ declare module "src/conn/ConnHolder" {
         private isDefinitelyDead;
         private id;
         private isOpen;
-        constructor(sendObject: (packet: Types.AnyAllNoObject) => void, sendBuffer: (packet: Buffer) => void, close: () => void, isDefinitelyDead?: () => boolean, id?: string, isOpen?: boolean);
-        bufferSerialization: BufferSerialization<Packet<Types.MakeArr<string | number | boolean | void | Buffer | {
-            [x: string]: Types.MakeArr<string | number | boolean | void | Buffer | any | null | undefined>;
+        constructor(sendObject: (packet: Types.AnyAllNoObject) => void, sendBuffer: (packet: Uint8Array) => void, close: () => void, isDefinitelyDead?: () => boolean, id?: string, isOpen?: boolean);
+        bufferSerialization: BufferSerialization<Packet<Types.MakeArr<string | number | boolean | void | Uint8Array | {
+            [x: string]: Types.MakeArr<string | number | boolean | void | Uint8Array | any | null | undefined>;
         } | null | undefined>, string>>;
         GetLocalId(): string;
         closeCalled: boolean;
@@ -52,7 +51,7 @@ declare module "src/conn/ConnHolder" {
         };
         Subscribe(callback: (packet: Packet) => void): UnsubscribeId;
         Unsubscribe(id: UnsubscribeId): void;
-        _OnMessage(inputObj: Types.AnyAllNoObject | Buffer): void;
+        _OnMessage(inputObj: Types.AnyAllNoObject | Uint8Array): void;
         callbacksOnOpen: {
             [id: string]: () => void;
         };
@@ -165,9 +164,7 @@ declare module "ws-class" {
     }): T;
     export { ThrottleConnections };
 }
-declare module "src/conn/browserConn" {
-    export function CreateBrowserConn(url: string): Conn;
-}
+declare module "src/conn/browserConn" { }
 declare module "src/reflection/misc" {
     export let g: any;
     export function isEmpty<T>(obj: {

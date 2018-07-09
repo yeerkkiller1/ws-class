@@ -5,15 +5,15 @@ const bufferSpecialPlaceholder = "bufferSpecialPlaceholderybeefpcvorwzyeqpeiuhei
 export class BufferSerialization<T extends ({ [key in keyof T]: Types.AnyAllNoObjectBuffer } | Types.AnyAllNoObjectBuffer)> {
     constructor(
         private sendObject: (packet: Types.AnyAllNoObject) => void,
-        private sendBuffer: (packet: Buffer) => void,
+        private sendBuffer: (packet: Uint8Array) => void,
     ) { }
 
-    pendingBuffers: Buffer[] = [];
-    public Received(obj: Types.AnyAllNoObject | Buffer): { obj: T } | null {
+    pendingBuffers: Uint8Array[] = [];
+    public Received(obj: Types.AnyAllNoObject | Uint8Array): { obj: T } | null {
         // If obj is a Buffer, we need to keep it in a list, until we get a non buffer, and then go through the object,
         //  find all special placeholders, and fill them in from the buffer list.
 
-        if(obj instanceof Buffer) {
+        if(obj instanceof Uint8Array) {
             this.pendingBuffers.push(obj);
             return null;
         }
@@ -50,12 +50,12 @@ export class BufferSerialization<T extends ({ [key in keyof T]: Types.AnyAllNoOb
     private send(obj: Types.AnyAllNoObjectBuffer) {
         // We need to take any Buffers, send them, replace the buffers in obj with special placeholders
 
-        let buffers: Buffer[] = [];
+        let buffers: Uint8Array[] = [];
 
         let newObj = mapRecursive<Types.AnyAllNoObject>(
             obj,
             x => {
-                if(x instanceof Buffer) {
+                if(x instanceof Uint8Array) {
                     buffers.push(x);
                     return { terminalLeaf: bufferSpecialPlaceholder };
                 }

@@ -87,7 +87,7 @@ export function CreateConnToServer(url: string): Conn {
         return !NODE;
     }
     let rawConn = NODE ? new ws(url) : new WebSocket(url);
-    function sendBase(data: string|Buffer) {
+    function sendBase(data: string|Uint8Array) {
         if(isWebsocket(rawConn)) {
             rawConn.send(data);
         } else {
@@ -95,20 +95,20 @@ export function CreateConnToServer(url: string): Conn {
         }
     }
 
-    let send = (data: string|Buffer) => sendBase(data);
+    let send = (data: string|Uint8Array) => sendBase(data);
 
     if(throttleInfo !== null) {
         let info = throttleInfo;
         let msPerByte = 1 / (info.kbPerSecond * 1024 / 1000);
         console.log(`Creating throttled connection. ${msPerByte} milliseconds per byte, ${info.latencyMs} ms latency.`);
-        send = simulateNetwork<string|Buffer>(
+        send = simulateNetwork<string|Uint8Array>(
             sendBase,
             err => {
                 console.error("Network err", err);
             },
             info.latencyMs,
             msPerByte,
-            x => x.length
+            x => typeof x === "string" ? x.length : x.byteLength
         );
     }
 
@@ -131,8 +131,12 @@ export function CreateConnToServer(url: string): Conn {
         };
         rawConn.onmessage = (ev) => {
             let data = ev.data;
-            if(data instanceof Buffer) {
-                conn._OnMessage(data);
+            if(data instanceof Blob) {
+                let reader = new FileReader();
+                reader.onload = () => {
+                    conn._OnMessage(new Uint8Array(reader.result as ArrayBuffer));
+                };
+                reader.readAsArrayBuffer(data);
             } else if(typeof data !== "string") {
                 throw new Error("Received message with type other than string, type was " + typeof data);
             } else {

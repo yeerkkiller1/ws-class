@@ -20,7 +20,7 @@ declare namespace Types {
     type MakeArr<T> = T | T[] | T[][] | T[][][] | T[][][][] | T[][][][][];
     export type AnyAllNoObject = MakeArr<Primitive | { [key in string]: AnyAllNoObject }>;
 
-    export type AnyAllNoObjectBuffer = MakeArr<Buffer | Primitive | { [key in string]: AnyAllNoObjectBuffer }>;// | { [key: number]: AnyAllNoObjectBuffer };
+    export type AnyAllNoObjectBuffer = MakeArr<Uint8Array | Primitive | { [key in string]: AnyAllNoObjectBuffer }>;// | { [key: number]: AnyAllNoObjectBuffer };
 
     
     type MakeAndArr<T> = T & T[] & T[][] & T[][][] & T[][][][] & T[][][][][];

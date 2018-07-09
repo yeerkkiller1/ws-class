@@ -1,5 +1,6 @@
 import {ConnHolder} from "./ConnHolder";
 
+/*
 export function CreateBrowserConn(url: string): Conn {
     let ws: WebSocket;
     let conn = new ConnHolder(
@@ -30,3 +31,4 @@ export function CreateBrowserConn(url: string): Conn {
 
     return conn;
 }
+*/
