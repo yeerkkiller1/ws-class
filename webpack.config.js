@@ -39,8 +39,7 @@ function getConfig (env) {
 
         plugins: [
             new webpack.DefinePlugin({
-                TEST: false,
-                NODE: node
+                TEST: false
             }),
             new Visualizer(),
         ],
