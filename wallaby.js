@@ -29,7 +29,6 @@ module.exports = function (wallaby) {
             let global = Function('return this')();
             global.TEST = true;
             global.NODE = true;
-            global.NODE_CONSTANT = true;
         },
     };
 };

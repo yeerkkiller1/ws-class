@@ -4,6 +4,12 @@
 
 import { CreateConnToServer, StartServer, ThrottleConnections } from "./src/conn/serverConn";
 import { StreamConnToClass, CreateClassFromConn } from "./src/conn/connStreams";
+import { g } from "./dist/src/reflection/misc";
+
+if(typeof g.NODE === "undefined") {
+    console.warn(`No NODE global value set. Assuming NODE = true.`)
+    g.NODE = true;
+}
 
 /**
 interface ClientTest {
@@ -72,5 +78,7 @@ export function ConnectToServer<T extends (Bidirect<T, any> | Controller<T>)>(
 
     return client;
 }
+
+HostServer(7060, {});
 
 export { ThrottleConnections };
