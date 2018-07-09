@@ -86,6 +86,14 @@ declare module "src/conn/fakes/wsFakes" {
     export function StartServerFake(port: number, onConn: (conn: Conn) => void): void;
     export function CreateConnToServerFake(url: string): Conn;
 }
+declare module "src/controlFlow/promise" {
+    export function createPromiseStream<T>(promiseErrorTimeout?: number): {
+        getPromise(): Promise<T>;
+        sendValue(val: T | Promise<T>): void;
+        throwErr(err: any): void;
+    };
+    export function setTimeoutAsync(time: number): Promise<void>;
+}
 declare module "src/conn/serverConn" {
     export function StartServer(port: number, onConn: (conn: Conn) => void): void;
     interface ThrottleInfo {
@@ -199,14 +207,6 @@ declare module "src/reflection/assert" {
     export function notImplementsData(proposedData: Types.AnyAll, dataContract: Types.AnyAll): false | string[];
     export function throws(code: () => void): void;
     export function throwsAsync(code: () => Promise<void>): Promise<void>;
-}
-declare module "src/controlFlow/promise" {
-    export function createPromiseStream<T>(promiseErrorTimeout?: number): {
-        getPromise(): Promise<T>;
-        sendValue(val: T): void;
-        throwErr(err: any): void;
-    };
-    export function setTimeoutAsync(time: number): Promise<void>;
 }
 declare module "src/conn/connStreams.test" { }
 declare module "src/conn/fakes/wsFakes.test" { }

@@ -2,13 +2,13 @@ export function createPromiseStream<T>(
     promiseErrorTimeout = 1000
 ): {
     getPromise(): Promise<T>;
-    sendValue(val: T): void;
+    sendValue(val: T|Promise<T>): void;
     throwErr(err: any): void;
 } {
     let vals: (
         // A promise represents a value received, and a function represents a value request.
         //  The list should only contain one type (if it doesn't, the requests and received can/should be collapsed!)
-        Promise<T>|{resolve: (val: T) => void, reject: (err: any) => void}
+        Promise<T>|{resolve: (val: T|Promise<T>) => void, reject: (err: any) => void}
     )[] = [];
 
     return {

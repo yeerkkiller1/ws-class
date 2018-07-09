@@ -2,6 +2,7 @@ import {ConnHolder} from "./ConnHolder";
 import * as ws from "ws";
 import { StartServerFake, CreateConnToServerFake, simulateNetwork } from "./fakes/wsFakes";
 import { createServer } from "http";
+import { createPromiseStream } from "../controlFlow/promise";
 
 
 export function StartServer(port: number, onConn: (conn: Conn) => void): void {
@@ -129,18 +130,29 @@ export function CreateConnToServer(url: string): Conn {
         rawConn.onclose = () => {
             conn._OnClose();
         };
+        let queue = createPromiseStream<Types.AnyAllNoObject | Uint8Array>();
+        async function handleQueue() {
+            while(true) {
+                let item = await queue.getPromise();
+                conn._OnMessage(item);
+            }
+        }
+        handleQueue();
         rawConn.onmessage = (ev) => {
             let data = ev.data;
+            
             if(data instanceof Blob) {
+                let readDone = createPromiseStream<Uint8Array>();
                 let reader = new FileReader();
                 reader.onload = () => {
-                    conn._OnMessage(new Uint8Array(reader.result as ArrayBuffer));
+                    readDone.sendValue(new Uint8Array(reader.result as ArrayBuffer));
                 };
                 reader.readAsArrayBuffer(data);
+                queue.sendValue(readDone.getPromise());
             } else if(typeof data !== "string") {
                 throw new Error("Received message with type other than string, type was " + typeof data);
             } else {
-                conn._OnMessage(JSON.parse(data));
+                queue.sendValue(JSON.parse(data));
             }
         };
     } else {
