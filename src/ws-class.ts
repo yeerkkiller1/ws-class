@@ -1,8 +1,8 @@
 /// <reference path="./src.d.ts" />
 
-import { CreateConnToServer, StartServer, ThrottleConnections } from "./conn/serverConn";
+import * as ServerConn from "./conn/serverConn";
 import { StreamConnToClass, CreateClassFromConn } from "./conn/connStreams";
-import { g } from "./reflection/misc";
+import { g } from "pchannel";
 
 
 if(typeof g.NODE === "undefined") {
@@ -49,7 +49,7 @@ interface ServerTest extends Bidirect<ServerTest, ClientTest> {
 */
 
 export function HostServer<T extends (BidirectAny<T, any> | ControllerAny<T>)>(port: number, server: T) {
-    StartServer(port, conn => {
+    ServerConn.StartServer(port, conn => {
         StreamConnToClass(conn, server);
     });
 }
@@ -64,7 +64,7 @@ export function ConnectToServer<T extends (Bidirect<T, any> | Controller<T>)>(
     }
 ): T {
     let { bidirectionController, host, port } = parameters;
-    let conn = CreateConnToServer(`ws://${host}:${port}`);
+    let conn = ServerConn.CreateConnToServer(`ws://${host}:${port}`);
 
     let client = CreateClassFromConn<T>({
         conn: conn,
@@ -74,4 +74,10 @@ export function ConnectToServer<T extends (Bidirect<T, any> | Controller<T>)>(
     return client;
 }
 
-export { ThrottleConnections };
+interface ThrottleInfo {
+    latencyMs: number;
+    kbPerSecond: number;
+}
+export function ThrottleConnections(newThrottleInfo: ThrottleInfo, code: () => void): void {
+    ServerConn.ThrottleConnections(newThrottleInfo, code);
+}

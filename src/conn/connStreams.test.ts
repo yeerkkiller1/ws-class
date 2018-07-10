@@ -1,12 +1,11 @@
-import { throws, throwIfNotImplementsData, throwsAsync } from "../reflection/assert";
 import { StartServer, CreateConnToServer } from "./serverConn";
 import { StreamConnToClass, CreateClassFromConn, GetCurPacket, GetCurConn } from "./connStreams";
-import { createPromiseStream, setTimeoutAsync } from "../controlFlow/promise";
 import { DEBUG_ASSIGN_PORT } from "./fakes/wsFakes";
+import { ThrowsAsync, SetTimeoutAsync, pchan, Throws, ThrowIfNotImplementsData } from "pchannel";
 
 if(TEST) {
     describe("connStreams", () => {
-        describe("throws", () => {
+        describe("Throws", () => {
             it("exceptions through calls", async () => {
                 let port = DEBUG_ASSIGN_PORT();
 
@@ -25,7 +24,7 @@ if(TEST) {
 
                 let server = CreateClassFromConn<Server>({conn: clientConn});
 
-                await throwsAsync(async () => {
+                await ThrowsAsync(async () => {
                     await server.fnc();
                 });
             });
@@ -35,7 +34,7 @@ if(TEST) {
 
                 class Server {
                     async fnc() {
-                        await setTimeoutAsync(0);
+                        await SetTimeoutAsync(0);
                         throw new Error("test error");
                     }
                 }
@@ -49,7 +48,7 @@ if(TEST) {
 
                 let server = CreateClassFromConn<Server>({conn: clientConn});
 
-                await throwsAsync(async () => {
+                await ThrowsAsync(async () => {
                     await server.fnc();
                 });
             });
@@ -59,7 +58,7 @@ if(TEST) {
 
                 class Server {
                     async fnc() {
-                        await setTimeoutAsync(0);
+                        await SetTimeoutAsync(0);
                         throw "test error";
                     }
                 }
@@ -73,7 +72,7 @@ if(TEST) {
 
                 let server = CreateClassFromConn<Server>({conn: clientConn});
 
-                await throwsAsync(async () => {
+                await ThrowsAsync(async () => {
                     await server.fnc();
                 });
             });
@@ -89,7 +88,7 @@ if(TEST) {
 
                 let clientConn = CreateConnToServer(`ws://localhost:${port}`);
                 let server = CreateClassFromConn<Server>({conn: clientConn});
-                await throwsAsync(async () => {
+                await ThrowsAsync(async () => {
                     await (server as any)["test"]();
                 });
             });
@@ -107,7 +106,7 @@ if(TEST) {
 
                 let clientConn = CreateConnToServer(`ws://localhost:${port}`);
                 let server = CreateClassFromConn({conn: clientConn});
-                await throwsAsync(async () => {
+                await ThrowsAsync(async () => {
                     await (server as any)["notAFunction"]();
                 });
             });
@@ -125,18 +124,18 @@ if(TEST) {
 
                 let clientConn = CreateConnToServer(`ws://localhost:${port}`);
                 let server = CreateClassFromConn({conn: clientConn});
-                await throwsAsync(async () => {
+                await ThrowsAsync(async () => {
                     await (server as any)["fnc"]();
                 });
             });
 
             it("on return from _VOID special function", async () => {
-                let waitForDone = createPromiseStream<boolean>();
+                let waitForDone = pchan<boolean>();
                 let port = DEBUG_ASSIGN_PORT();
 
                 class Server {
                     async what_VOID() {
-                        waitForDone.sendValue(true);
+                        waitForDone.SendValue(true);
                         return 5;
                     }
                 }
@@ -149,17 +148,17 @@ if(TEST) {
                 let server = CreateClassFromConn<Server>({conn: clientConn});
 
                 let result = server.what_VOID();
-                await waitForDone.getPromise();
+                await waitForDone.GetPromise();
             });
 
             it("on invalid extra functions calls", async () => {
                 class Server implements Controller<Server> { }
 
                 let server = new Server();
-                throws(() => {
+                Throws(() => {
                     let packet = GetCurPacket(server);
                 });
-                throws(() => {
+                Throws(() => {
                     let conn = GetCurConn(server);
                 });
             });
@@ -175,11 +174,11 @@ if(TEST) {
 
             it("_VOID code path", async () => {
                 let port = DEBUG_ASSIGN_PORT();
-                let serverFncStream = createPromiseStream<string>();
+                let serverFncStream = pchan<string>();
 
                 class Server implements Controller<Server> {
                     fnc_VOID(text: string): void {
-                        serverFncStream.sendValue(text);
+                        serverFncStream.SendValue(text);
                     }
                 }
 
@@ -194,8 +193,8 @@ if(TEST) {
 
                 server.fnc_VOID("test");
 
-                let serverValue = await serverFncStream.getPromise();
-                throwIfNotImplementsData(serverValue, "test");
+                let serverValue = await serverFncStream.GetPromise();
+                ThrowIfNotImplementsData(serverValue, "test");
             });
 
             it("controller misc functions", async () => {
@@ -241,11 +240,11 @@ if(TEST) {
         describe("sanity checks", () => {
             it("allows a simple client to server function call", async () => {
                 let port = DEBUG_ASSIGN_PORT();
-                let serverFncStream = createPromiseStream<string>();
+                let serverFncStream = pchan<string>();
 
                 class Server {
                     fnc(text: string) {
-                        serverFncStream.sendValue(text);
+                        serverFncStream.SendValue(text);
                     }
                 }
 
@@ -260,8 +259,8 @@ if(TEST) {
 
                 server.fnc("test");
 
-                let serverValue = await serverFncStream.getPromise();
-                throwIfNotImplementsData(serverValue, "test");
+                let serverValue = await serverFncStream.GetPromise();
+                ThrowIfNotImplementsData(serverValue, "test");
             });
 
             it("serializes arguments, instead of just passing them through the fake", async () => {
@@ -286,12 +285,12 @@ if(TEST) {
                 let objReturn = await server.fnc(obj);
 
                 // The object shouldn't be === ! A network connection cannot pass an object directly.
-                throwIfNotImplementsData(obj === objReturn, false);
+                ThrowIfNotImplementsData(obj === objReturn, false);
             });
 
             it("allows bidrectional calls", async () => {
                 let port = DEBUG_ASSIGN_PORT();
-                let serverFncStream = createPromiseStream<string>();
+                let serverFncStream = pchan<string>();
 
                 interface ServerClient {
                     getValue(): Promise<string>;
@@ -299,7 +298,7 @@ if(TEST) {
                 class Server implements Bidirect<Server, ServerClient> {
                     client!: ServerClient;
                     async fnc(text: string) {
-                        serverFncStream.sendValue(await this.client.getValue());
+                        serverFncStream.SendValue(await this.client.getValue());
                     }
                 }
 
@@ -322,15 +321,15 @@ if(TEST) {
 
                 server.fnc("test");
 
-                let serverValue = await serverFncStream.getPromise();
-                throwIfNotImplementsData(serverValue, "okay");
+                let serverValue = await serverFncStream.GetPromise();
+                ThrowIfNotImplementsData(serverValue, "okay");
             });
         });
 
         describe("basic buffers", () => {
             it("buffer returned works", async () => {
                 let port = DEBUG_ASSIGN_PORT();
-                let serverFncStream = createPromiseStream<string>();
+                let serverFncStream = pchan<string>();
 
                 class Server {
                     async fnc(text: string): Promise<Buffer> {
@@ -350,15 +349,15 @@ if(TEST) {
                 let value = await server.fnc("test");
                 let isBuffer = value instanceof Buffer;
 
-                throwIfNotImplementsData({isBuffer}, {isBuffer: true});
+                ThrowIfNotImplementsData({isBuffer}, {isBuffer: true});
 
                 let resultText = Array.from(value).map(x => String.fromCharCode(x)).join("");
-                throwIfNotImplementsData(resultText, "test");
+                ThrowIfNotImplementsData(resultText, "test");
             });
 
             it("buffer argument works", async () => {
                 let port = DEBUG_ASSIGN_PORT();
-                let serverFncStream = createPromiseStream<string>();
+                let serverFncStream = pchan<string>();
 
                 class Server {
                     async fnc(buf: Buffer): Promise<Buffer> {
@@ -378,15 +377,15 @@ if(TEST) {
                 let value = await server.fnc(new Buffer([0, 1, 2, 3]));
                 let isBuffer = value instanceof Buffer;
 
-                throwIfNotImplementsData({isBuffer}, {isBuffer: true});
+                ThrowIfNotImplementsData({isBuffer}, {isBuffer: true});
 
                 let result = Array.from(value);
-                throwIfNotImplementsData(result, [3, 2, 1, 0]);
+                ThrowIfNotImplementsData(result, [3, 2, 1, 0]);
             });
 
             it("buffer in object as argument works", async () => {
                 let port = DEBUG_ASSIGN_PORT();
-                let serverFncStream = createPromiseStream<string>();
+                let serverFncStream = pchan<string>();
 
                 class Server {
                     async fnc(obj: { buf: Buffer, count: number}): Promise<Buffer> {
@@ -406,15 +405,15 @@ if(TEST) {
                 let value = await server.fnc({buf: new Buffer([0, 1, 2, 3]), count: 2});
                 let isBuffer = value instanceof Buffer;
 
-                throwIfNotImplementsData({isBuffer}, {isBuffer: true});
+                ThrowIfNotImplementsData({isBuffer}, {isBuffer: true});
 
                 let result = Array.from(value);
-                throwIfNotImplementsData(result, [0, 1]);
+                ThrowIfNotImplementsData(result, [0, 1]);
             });
 
             it("buffer in object returned works", async () => {
                 let port = DEBUG_ASSIGN_PORT();
-                let serverFncStream = createPromiseStream<string>();
+                let serverFncStream = pchan<string>();
 
                 class Server {
                     async fnc(obj: { buf: Buffer, count: number}): Promise<{ buf: Buffer, count: number }> {
@@ -433,10 +432,10 @@ if(TEST) {
 
                 let value = await server.fnc({buf: new Buffer([0, 1, 2, 3]), count: 2});
                 let isBuffer = value.buf instanceof Buffer;
-                throwIfNotImplementsData({isBuffer}, {isBuffer: true});
+                ThrowIfNotImplementsData({isBuffer}, {isBuffer: true});
                 
                 let result = Array.from(value.buf);
-                throwIfNotImplementsData(result, [0, 1]);
+                ThrowIfNotImplementsData(result, [0, 1]);
             });
         });
     });

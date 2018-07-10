@@ -1,8 +1,7 @@
 import {ConnHolder} from "./ConnHolder";
 import * as ws from "ws";
 import { StartServerFake, CreateConnToServerFake, simulateNetwork } from "./fakes/wsFakes";
-import { createServer } from "http";
-import { createPromiseStream } from "../controlFlow/promise";
+import { pchan } from "pchannel";
 
 
 export function StartServer(port: number, onConn: (conn: Conn) => void): void {
@@ -130,10 +129,10 @@ export function CreateConnToServer(url: string): Conn {
         rawConn.onclose = () => {
             conn._OnClose();
         };
-        let queue = createPromiseStream<Types.AnyAllNoObject | Uint8Array>();
+        let queue = pchan<Types.AnyAllNoObject | Uint8Array>();
         async function handleQueue() {
             while(true) {
-                let item = await queue.getPromise();
+                let item = await queue.GetPromise();
                 conn._OnMessage(item);
             }
         }
@@ -142,17 +141,17 @@ export function CreateConnToServer(url: string): Conn {
             let data = ev.data;
             
             if(data instanceof Blob) {
-                let readDone = createPromiseStream<Uint8Array>();
+                let readDone = pchan<Uint8Array>();
                 let reader = new FileReader();
                 reader.onload = () => {
-                    readDone.sendValue(new Uint8Array(reader.result as ArrayBuffer));
+                    readDone.SendValue(new Uint8Array(reader.result as ArrayBuffer));
                 };
                 reader.readAsArrayBuffer(data);
-                queue.sendValue(readDone.getPromise());
+                queue.SendValue(readDone.GetPromise());
             } else if(typeof data !== "string") {
                 throw new Error("Received message with type other than string, type was " + typeof data);
             } else {
-                queue.sendValue(JSON.parse(data));
+                queue.SendValue(JSON.parse(data));
             }
         };
     } else {

@@ -1,4 +1,4 @@
-import { isArray } from "../reflection/type";
+import { IsArray } from "pchannel";
 
 export function mapRecursive<O extends Types.AnyAll>(
     obj: Types.AnyAllNoObjectBuffer,
@@ -12,7 +12,7 @@ export function mapRecursive<O extends Types.AnyAll>(
     }
 
     let result: Types.AnyAllNoObjectBuffer;
-    if(isArray(obj)) {
+    if(IsArray(obj)) {
         let arr: Types.AnyAll[] = [];
         for(let i = 0; i < obj.length; i++) {
             arr.push(mapRecursive(obj[i], map));

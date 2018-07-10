@@ -1,31 +1,30 @@
 import { simulateNetwork, createConnPairs, CreateConnToServerFake, DEBUG_ASSIGN_PORT } from "./wsFakes";
-import { createPromiseStream, setTimeoutAsync } from "../../controlFlow/promise";
 import { StartServer, CreateConnToServer } from "../serverConn";
-import { throwIfNotImplementsData, throws, throwsAsync } from "../../reflection/assert";
 import { BufferSerialization } from "../bufferSerialization";
+import { ThrowsAsync, Throws, SetTimeoutAsync, pchan, ThrowIfNotImplementsData } from "pchannel";
 
 if(TEST) {
     describe("wsFakes", () => {
         describe("throws", () => {
             it("simulateNetwork throws", async () => {
-                let errorStream = createPromiseStream<Packet>();
-                await throwsAsync(async () => {
+                let errorStream = pchan<Packet>();
+                await ThrowsAsync(async () => {
                     let send = simulateNetwork<number>(() => {
                         throw new Error();
                     }, err => {
-                        errorStream.throwErr(err);
+                        errorStream.SendError(err);
                     });
 
                     send(0);
 
-                    await errorStream.getPromise();
+                    await errorStream.GetPromise();
                 });
             });
 
             it("throws on calling send on locally closed connection", async () => {
                 let obj = createConnPairs();
                 obj.clientConn.Close();
-                throws(() => {
+                Throws(() => {
                     obj.clientConn.Send({ SourceId: [], DestId: [], Kind: "", Payload: undefined });
                 });
             });
@@ -36,16 +35,16 @@ if(TEST) {
 
                 // Latency determines the time close takes to propogate. So, this should always be enough time for the server
                 //  to know the client is closed.
-                await setTimeoutAsync(100);
+                await SetTimeoutAsync(100);
 
-                throws(() => {
+                Throws(() => {
                     obj.serverConn.Send({ SourceId: [], DestId: [], Kind: "", Payload: undefined });    
                 });
             });
 
             it("throws on reusing a port", () => {
                 let port = DEBUG_ASSIGN_PORT();
-                throws(() => {
+                Throws(() => {
                     StartServer(port, () => {});
                     StartServer(port, () => {});
                 });
@@ -54,47 +53,47 @@ if(TEST) {
             it("throws on not supported socket url", () => {
                 let port = DEBUG_ASSIGN_PORT();
                 StartServer(port, () => {});
-                throws(() => {
+                Throws(() => {
                     CreateConnToServer(`wss://localhost:${port}`);
                 });
             });
 
             it("throws on fixed port number", () => {
-                throws(() => {
+                Throws(() => {
                     StartServer(8000, () => {});
                 });
             });
 
             it("throws on no port", () => {
-                throws(() => {
+                Throws(() => {
                     CreateConnToServerFake("ws://localhost");
                 });
             });
 
             it("throws on not finding port", () => {
                 let port = DEBUG_ASSIGN_PORT();
-                throws(() => {
+                Throws(() => {
                     CreateConnToServerFake(`ws://localhost:${port}`);
                 });
             });
 
             it("throws on invalid BufferSerialization.Received calls", async () => {
-                let sendObject = createPromiseStream<Types.AnyAllNoObject>();
-                let sendBuffer = createPromiseStream<Uint8Array>();
+                let sendObject = pchan<Types.AnyAllNoObject>();
+                let sendBuffer = pchan<Uint8Array>();
 
-                let buf = new BufferSerialization(x => sendObject.sendValue(x), x => sendBuffer.sendValue(x));
+                let buf = new BufferSerialization(x => sendObject.SendValue(x), x => sendBuffer.SendValue(x));
                 buf.Send({ a: new Buffer(0) });
 
-                let obj = await sendObject.getPromise();
+                let obj = await sendObject.GetPromise();
 
-                throws(() => {
+                Throws(() => {
                     buf.Received(obj);
                 });
 
                 buf.Received(new Buffer(0));
                 buf.Received(new Buffer(0));
 
-                throws(() => {
+                Throws(() => {
                     buf.Received(obj);
                 });
             });
@@ -110,15 +109,15 @@ if(TEST) {
                 obj.serverConn.Close();
 
                 // Wait for closes to finish
-                await setTimeoutAsync(100);
+                await SetTimeoutAsync(100);
             });
 
             it("allows various websocket url formats", async () => {
                 let port = DEBUG_ASSIGN_PORT();
-                let serverReceivedStream = createPromiseStream<Packet>();
+                let serverReceivedStream = pchan<Packet>();
                 StartServer(port, conn => {
                     conn.Subscribe(packet => {
-                        serverReceivedStream.sendValue(packet);
+                        serverReceivedStream.SendValue(packet);
                     });
                 });
 
@@ -128,8 +127,8 @@ if(TEST) {
 
                 // Make sure the server gets it
                 {
-                    let packet = await serverReceivedStream.getPromise();
-                    throwIfNotImplementsData(packet.Kind, "test");
+                    let packet = await serverReceivedStream.GetPromise();
+                    ThrowIfNotImplementsData(packet.Kind, "test");
                 }
             });
         });
@@ -137,18 +136,18 @@ if(TEST) {
         describe("sanity checks", () => {
             it("starts, accepts clients, and sends both ways", async () => {
                 let port = DEBUG_ASSIGN_PORT();
-                let serverReceivedStream = createPromiseStream<Packet>();
+                let serverReceivedStream = pchan<Packet>();
                 StartServer(port, conn => {
                     conn.Subscribe(packet => {
-                        serverReceivedStream.sendValue(packet);
+                        serverReceivedStream.SendValue(packet);
                         conn.Send({ DestId: [], SourceId: [], Kind: "reply", Payload: undefined });
                     });
                 });
 
-                let clientReceivedStream = createPromiseStream<Packet>();
+                let clientReceivedStream = pchan<Packet>();
                 let client = CreateConnToServer(`ws://localhost:${port}`);
                 client.Subscribe(packet => {
-                    clientReceivedStream.sendValue(packet);
+                    clientReceivedStream.SendValue(packet);
                 });
 
                 client.Send({ DestId: [], SourceId: [], Kind: "test", Payload: undefined });
@@ -156,20 +155,20 @@ if(TEST) {
 
                 // Make sure the server gets it
                 {
-                    let packet = await serverReceivedStream.getPromise();
-                    throwIfNotImplementsData(packet.Kind, "test");
+                    let packet = await serverReceivedStream.GetPromise();
+                    ThrowIfNotImplementsData(packet.Kind, "test");
                 }
 
                 {
-                    let packet = await serverReceivedStream.getPromise();
-                    throwIfNotImplementsData(packet.Kind, "test2");
+                    let packet = await serverReceivedStream.GetPromise();
+                    ThrowIfNotImplementsData(packet.Kind, "test2");
                 }
 
                 // Make sure the client gets a response
                 {
                     // And make sure we can get messages back
-                    let packet = await clientReceivedStream.getPromise();
-                    throwIfNotImplementsData(packet.Kind, "reply");
+                    let packet = await clientReceivedStream.GetPromise();
+                    ThrowIfNotImplementsData(packet.Kind, "reply");
                 }
             });
         });
