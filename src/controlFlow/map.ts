@@ -18,7 +18,7 @@ export function mapRecursive<O extends Types.AnyAll>(
             arr.push(mapRecursive(obj[i], map));
         }
         result = arr as Types.AnyAllNoObject;
-    } else if(typeof obj === "object" && obj !== null && !(obj instanceof Buffer)) {
+    } else if(typeof obj === "object" && obj !== null && !(obj instanceof Uint8Array)) {
         let lookup: Types.DictionaryArr = {};
         for(let key in obj) {
             lookup[key] = mapRecursive(obj[key], map);

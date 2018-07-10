@@ -1,10 +1,9 @@
-/// <reference path="src/conn/conn.d.ts" />
-/// <reference path="src/conn/types.d.ts" />
-/// <reference path="src/reflection/reflection.d.ts" />
+/// <reference path="./src.d.ts" />
 
-import { CreateConnToServer, StartServer, ThrottleConnections } from "./src/conn/serverConn";
-import { StreamConnToClass, CreateClassFromConn } from "./src/conn/connStreams";
-import { g } from "./dist/src/reflection/misc";
+import { CreateConnToServer, StartServer, ThrottleConnections } from "./conn/serverConn";
+import { StreamConnToClass, CreateClassFromConn } from "./conn/connStreams";
+import { g } from "./reflection/misc";
+
 
 if(typeof g.NODE === "undefined") {
     console.warn(`No NODE global value set. Assuming NODE = true.`)
@@ -24,9 +23,7 @@ interface ServerTest extends Bidirect<ServerTest, ClientTest> {
     class Server implements ServerTest {
         x = 5;
         client!: ClientTest;
-        notPublic = () => {
-
-        };
+        notPublic = () => { };
         async test(y: string) {
             let x: number = await this.client.hi(y);
             //console.log("call to client.hi", x);
@@ -44,9 +41,7 @@ interface ServerTest extends Bidirect<ServerTest, ClientTest> {
             return msg.length;
         }
     }
-
     let server = ConnectToServer<ServerTest>({ host: "localhost", port: 6080, bidirectionController: new ClientImpl() });
-    
     (async () => {
         console.log("call to test", await server.test("you"));
     })();

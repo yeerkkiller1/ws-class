@@ -17,7 +17,7 @@ export class ConnHolder implements Conn {
         private isOpen = true
     ) { }
 
-    bufferSerialization = new BufferSerialization<Packet>(
+    private bufferSerialization = new BufferSerialization<Packet>(
         this.sendObject,
         this.sendBuffer
     );

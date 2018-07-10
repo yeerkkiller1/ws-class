@@ -1,18 +1,18 @@
 {
     "compilerOptions": {
         "outDir": "./dist/",
-        "outFile": "./typesIndex.js",
-        "sourceMap": true,
+        "outFile": "./dist/ws-class.js",
+        "sourceMap": false,
         "strict": true,
         "module": "system",
+        "moduleResolution": "node",
         "target": "es2017",
         "jsx": "react",
+        "emitDeclarationOnly": true,
         "declaration": true,
-        "types": [
-            "node"
-        ]
+        "types": [ "node" ]
     },
-    "exclude": [
-        "typesIndex.d.ts"
+    "files": [
+        "./src/ws-class.ts"
     ]
 }

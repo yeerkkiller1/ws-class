@@ -1,7 +1,6 @@
 var fs = require("fs");
 var webpack = require("webpack");
 var Visualizer = require("webpack-visualizer-plugin");
-var DeclarationBundlerPlugin = require("./fixed-declaration-bundler-webpack-plugin");
 
 module.exports = env => {
     return [getConfig(env)];
@@ -12,11 +11,11 @@ function getConfig (env) {
 
     let obj = {
         mode: "development",
-        entry: entryPoints = {
-            index: "./ws-class.ts"
+        entry: {
+            index: "./src/ws-class.ts"
         },
         output: {
-            filename: "../[name].js",
+            filename: "./ws-class.js",
             libraryTarget: "commonjs2"
         },
 

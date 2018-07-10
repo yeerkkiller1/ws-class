@@ -29,6 +29,8 @@ module.exports = function (wallaby) {
             let global = Function('return this')();
             global.TEST = true;
             global.NODE = true;
+
+            global.PROMISE_defaultTimeout = 1000;
         },
     };
 };

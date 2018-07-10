@@ -1,11 +1,20 @@
+import { g } from "../reflection/misc";
+
+export function setDefaultTimeout(timeout: number) {
+    g.PROMISE_defaultTimeout = timeout;
+}
+
 export function createPromiseStream<T>(
     /** -1 means infinite */
-    promiseErrorTimeout = -1
+    promiseErrorTimeout: number = g.PROMISE_defaultTimeout
 ): {
     getPromise(): Promise<T>;
     sendValue(val: T|Promise<T>): void;
     throwErr(err: any): void;
 } {
+    if(promiseErrorTimeout === undefined) {
+        promiseErrorTimeout = -1;
+    }
     let vals: (
         // A promise represents a value received, and a function represents a value request.
         //  The list should only contain one type (if it doesn't, the requests and received can/should be collapsed!)

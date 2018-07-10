@@ -1,11 +1,7 @@
 node_modules/
 npm-debug.log
-typings/
 .DS_Store
 stats.html
-index.ts
-src/**/*.ts
-typesIndex.js
-dist
+src
 
 !src/**/*.d.ts
