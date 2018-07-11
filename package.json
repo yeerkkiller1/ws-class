@@ -3,7 +3,7 @@
     "start": "bash watch.sh"
   },
   "name": "ws-class",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "main": "./dist/ws-class.js",
   "types": "./dist/ws-class.d.ts",
   "author": "yeerkkiller1 <yeerkkiller1@gmail.com>",
