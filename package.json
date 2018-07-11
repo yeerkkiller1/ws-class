@@ -19,7 +19,7 @@
     "@types/jasmine": "^2.8.7",
     "@types/node": "^7.0.12",
     "@types/ws": "^3.2.0",
-    "clean-typings-file": "^0.1.4",
+    "clean-typings-file": "^0.1.5",
     "jasmine": "^3.1.0",
     "run-when-changed": "^2.1.0",
     "source-map-loader": "^0.2.3",

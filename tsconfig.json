@@ -6,6 +6,9 @@
         "module": "commonjs",
         "target": "es2017",
         "jsx": "react",
-        "types": [ "node" ]
-    }
+        "types": [ "node", "jasmine" ]
+    },
+    "files": [
+        "./src/ws-class.ts"
+    ]
 }
