@@ -11,11 +11,10 @@
   "repository": {
     "url": "https://github.com/yeerkkiller1/ws-class"
   },
-  "dependencies": {
-    "pchannel": "^0.2.5",
-    "ws": "^3.2.0"
-  },
+  "dependencies": { },
   "devDependencies": {
+    "pchannel": "^0.2.5",
+    "ws": "^3.2.0",
     "@types/jasmine": "^2.8.7",
     "@types/node": "^7.0.12",
     "@types/ws": "^3.2.0",
