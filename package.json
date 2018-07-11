@@ -12,7 +12,7 @@
     "url": "https://github.com/yeerkkiller1/ws-class"
   },
   "dependencies": {
-    "pchannel": "^0.2.1",
+    "pchannel": "0.2.1",
     "ws": "^3.2.0"
   },
   "devDependencies": {
