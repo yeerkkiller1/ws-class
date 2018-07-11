@@ -1,3 +1,4 @@
+var nodeExternals = require('webpack-node-externals');
 var fs = require("fs");
 var webpack = require("webpack");
 var Visualizer = require("webpack-visualizer-plugin");
@@ -43,9 +44,7 @@ function getConfig (env) {
             new Visualizer(),
         ],
 
-        resolveLoader: {
-            modules: ['node_modules']
-        },
+        externals: [nodeExternals()]
     };
 
     if (node) {
