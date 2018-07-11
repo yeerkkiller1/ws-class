@@ -5,8 +5,6 @@ import { StreamConnToClass, CreateClassFromConn } from "./conn/connStreams";
 import { g } from "pchannel";
 import { readFileSync } from "fs";
 
-readFileSync("test");
-
 
 if(typeof g.NODE === "undefined") {
     console.warn(`No NODE global value set. Assuming NODE = true.`)

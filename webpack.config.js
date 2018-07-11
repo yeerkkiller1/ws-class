@@ -44,6 +44,11 @@ function getConfig (env) {
             new Visualizer(),
         ],
 
+        // The locations webpack looks for loaders?
+        resolveLoader: {
+            modules: ['node_modules', './loaders']
+        },
+
         externals: [nodeExternals()]
     };
 
