@@ -3,7 +3,6 @@ import * as ws from "ws";
 import { StartServerFake, CreateConnToServerFake, simulateNetwork } from "./fakes/wsFakes";
 import { pchan } from "pchannel";
 
-
 export function StartServer(port: number, onConn: (conn: Conn) => void): void {
     if(NODE) {
         if(TEST) {
