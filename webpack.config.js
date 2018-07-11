@@ -48,8 +48,6 @@ function getConfig (env) {
         resolveLoader: {
             modules: ['node_modules', './loaders']
         },
-
-        externals: [nodeExternals()]
     };
 
     if (node) {
