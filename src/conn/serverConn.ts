@@ -160,6 +160,9 @@ export function CreateConnToServer(url: string): Conn {
         rawConn.on("close", () => {
             conn._OnClose();
         });
+        rawConn.on("error", (e) => {
+            console.error("Connection closed", e);
+        });
         rawConn.on("message", (data) => {
             if(data instanceof Buffer) {
                 conn._OnMessage(data);

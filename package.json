@@ -3,7 +3,7 @@
     "start": "bash watch.sh"
   },
   "name": "ws-class",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "main": "./dist/ws-class.js",
   "types": "./dist/ws-class.d.ts",
   "author": "yeerkkiller1 <yeerkkiller1@gmail.com>",
@@ -12,11 +12,11 @@
     "url": "https://github.com/yeerkkiller1/ws-class"
   },
   "dependencies": {
-    "pchannel": "0.2.5",
-    "webpack-node-externals": "^1.7.2",
-    "ws": "^3.2.0"
+    
   },
   "devDependencies": {
+    "pchannel": "0.2.5",
+    "ws": "^3.2.0",
     "@types/jasmine": "^2.8.7",
     "@types/node": "^7.0.12",
     "@types/ws": "^3.2.0",

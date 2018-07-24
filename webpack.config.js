@@ -1,4 +1,3 @@
-var nodeExternals = require('webpack-node-externals');
 var fs = require("fs");
 var webpack = require("webpack");
 var Visualizer = require("webpack-visualizer-plugin");
