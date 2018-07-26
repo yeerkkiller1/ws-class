@@ -1,4 +1,5 @@
 import { randomUID } from "./ConnHolder";
+import { pchan, PChan } from "pchannel";
 
 export function GetCurPacket<T extends Controller<T>>(baseController: T): Packet {
     let controller = baseController as any as BiProperties;
@@ -186,6 +187,11 @@ function CreateClassFromConnInternal<
         }
     });
     
+    let closeChan = new PChan<void>();
+    conn.SubscribeOnClose("connStreams", () => {
+        closeChan.SendValue(undefined);
+        conn.UnsubscribeOnClose("connStreams");
+    });
     var controller = new Proxy<ConnExtraProperties>({
         GetConn() {
             return conn;
@@ -200,7 +206,8 @@ function CreateClassFromConnInternal<
         },
         IsDead() {
             return conn.IsDead();
-        }
+        },
+        ClosePromise: closeChan.GetPromise()
     }, {
         get: getProxy as any
     });

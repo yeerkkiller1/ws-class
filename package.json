@@ -3,7 +3,7 @@
     "start": "bash watch.sh"
   },
   "name": "ws-class",
-  "version": "0.5.3",
+  "version": "0.5.6",
   "main": "./dist/ws-class.js",
   "types": "./dist/ws-class.d.ts",
   "author": "yeerkkiller1 <yeerkkiller1@gmail.com>",
@@ -11,17 +11,14 @@
   "repository": {
     "url": "https://github.com/yeerkkiller1/ws-class"
   },
-  "dependencies": {
-    
-  },
+  "dependencies": {},
   "devDependencies": {
-    "pchannel": "0.2.5",
-    "ws": "^3.2.0",
     "@types/jasmine": "^2.8.7",
     "@types/node": "^7.0.12",
     "@types/ws": "^3.2.0",
     "clean-typings-file": "^0.1.5",
     "jasmine": "^3.1.0",
+    "pchannel": "^0.2.5",
     "run-when-changed": "^2.1.0",
     "source-map-loader": "^0.2.3",
     "ts-loader": "^4.4.1",
@@ -29,6 +26,8 @@
     "webpack": "^4.12.1",
     "webpack-cli": "^3.0.8",
     "webpack-dev-server": "^2.9.4",
-    "webpack-visualizer-plugin": "^0.1.11"
+    "webpack-node-externals": "^1.7.2",
+    "webpack-visualizer-plugin": "^0.1.11",
+    "ws": "^3.2.0"
   }
 }

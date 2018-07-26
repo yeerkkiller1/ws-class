@@ -14,7 +14,8 @@ export class ConnHolder implements Conn {
         private close: () => void,
         private isDefinitelyDead = () => false,
         private id = randomUID("ConnHolder_"),
-        private isOpen = true
+        private isOpen = true,
+        private allowReconnection = false
     ) { }
 
     private bufferSerialization = new BufferSerialization<Packet>(
@@ -113,6 +114,9 @@ export class ConnHolder implements Conn {
 
     _OnClose() {
         this.isOpen = false;
+        if(!this.allowReconnection) {
+            this.closeCalled = true;
+        }
 
         let callbacks = this.callbacksOnClose;
         this.callbacksOnClose = {};
@@ -123,11 +127,13 @@ export class ConnHolder implements Conn {
         }
     }
 
-    /** Closing is permenant. If you call Close, Reconnect MUST not reconnect. */
+    /** Closing is permanent. If you call Close, Reconnect MUST not reconnect. */
     Close(): void {
         if(this.closeCalled) return;
         this.closeCalled = true;
-        this.close();
+        try {
+            this.close();
+        } catch(e) {}
     }
 
     IsDead() {

@@ -10,7 +10,10 @@
         "jsx": "react",
         "emitDeclarationOnly": true,
         "declaration": true,
-        "types": [ "node", "jasmine" ]
+        "types": [ "node", "jasmine" ],
+        "typeRoots": [
+            "node_modules/@types", "./src"
+        ]
     },
     "files": [
         "./src/ws-class.ts"

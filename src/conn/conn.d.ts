@@ -53,7 +53,7 @@ type Controller<T> = {
 };
 
 type BiProperties<C extends Controller<C> = any> = {
-    client: C|undefined;
+    client: C | C&ConnExtraProperties | undefined;
     /** The connection of the synchronous current function call (so if your function is async, this may not be set correctly after async portions of code). */
     syncConnection?: Conn;
     /** The packet of the synchronous current function call (so if your function is async, this may not be set correctly after async portions of code). */
@@ -112,4 +112,5 @@ interface ConnExtraProperties {
     GetConn(): Conn;
     CloseConnection(): void;
     IsDead(): boolean;
+    ClosePromise: Promise<void>;
 }
