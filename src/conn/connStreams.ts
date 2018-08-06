@@ -81,7 +81,7 @@ function CreateClassFromConnInternal<
 ): T & ConnExtraProperties {
     let { conn, destId, bidirectionController } = parameters;
 
-    //console.log(`CreateClassFromConnInternal conn: ${conn.GetLocalId()}, destid: ${destId}`);
+    console.log(`CreateClassFromConnInternal conn: ${conn.GetLocalId()}, destid: ${destId}`);
 
     let nextSequenceNumber: number = 0;
 
@@ -190,7 +190,6 @@ function CreateClassFromConnInternal<
     let closeChan = new PChan<void>();
     conn.SubscribeOnClose("connStreams", () => {
         closeChan.SendValue(undefined);
-        conn.UnsubscribeOnClose("connStreams");
     });
     var controller = new Proxy<ConnExtraProperties>({
         GetConn() {
@@ -243,7 +242,8 @@ export function StreamConnToClass<
         [sourceHash: string]: Controller<any>
     } = {};
     function getBiController(packet: Packets): Controller<any> {
-        let dest = packet.SourceId.slice();
+        // Skip the first part of the sourceId, as that is specific to the function call.
+        let dest = packet.SourceId.slice(1);
         let destHash = JSON.stringify(dest);
         if(!(destHash in biControllerCache)) {
             //console.log(`Call CreateClassFromConn from ${conn.GetLocalId()}`)
